@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tetris</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(10, 30px);
+      grid-gap: 1px;
+      border: 1px solid #000;
+      background-color: #fff;
+    }
+
+    .cell {
+      width: 30px;
+      height: 30px;
+      background-color: #ccc;
+      border: 1px solid #fff;
+    }
+
+    .active-cell {
+      background-color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-board"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const board = document.getElementById("game-board");
+      const ROWS = 20;
+      const COLUMNS = 10;
+      const EMPTY_CELL = "cell";
+      const ACTIVE_CELL = "active-cell";
+      const boardArray = Array.from({ length: ROWS * COLUMNS }, () => EMPTY_CELL);
+
+      let tetrisPiece = generateRandomPiece();
+
+      function generateRandomPiece() {
+        const shapes = [
+          [[1, 1, 1, 1]],
+          // Define other shapes as needed
+        ];
+
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const position = { row: 0, col: Math.floor((COLUMNS - shape[0].length) / 2) };
+
+        return { shape, position };
+      }
+
+      function render() {
+        for (let i = 0; i < boardArray.length; i++) {
+          const cell = board.children[i];
+          cell.className = boardArray[i];
+        }
+
+        for (let i = 0; i < tetrisPiece.shape.length; i++) {
+          for (let j = 0; j < tetrisPiece.shape[i].length; j++) {
+            if (tetrisPiece.shape[i][j] === 1) {
+              const cellIndex = (tetrisPiece.position.row + i) * COLUMNS + tetrisPiece.position.col + j;
+              boardArray[cellIndex] = ACTIVE_CELL;
+            }
+          }
+        }
+
+        for (let i = 0; i < boardArray.length; i++) {
+          const cell = board.children[i];
+          cell.className = boardArray[i];
+        }
+      }
+
+      function moveDown() {
+        tetrisPiece.position.row++;
+        if (!isValidMove()) {
+          tetrisPiece.position.row--;
+          placePiece();
+          tetrisPiece = generateRandomPiece();
+          if (!isValidMove()) {
+            // Game over
+            alert("Game Over!");
+            resetGame();
+          }
+        }
+        render();
+      }
+
+      function isValidMove() {
+        for (let i = 0; i < tetrisPiece.shape.length; i++) {
+          for (let j = 0; j < tetrisPiece.shape[i].length; j++) {
+            if (
+              tetrisPiece.shape[i][j] === 1 &&
+              (tetrisPiece.position.row + i >= ROWS ||
+              tetrisPiece.position.col + j < 0 ||
+              tetrisPiece.position.col + j >= COLUMNS ||
+              boardArray[(tetrisPiece.position.row + i) * COLUMNS + tetrisPiece.position.col + j] === "cell")
+            ) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      function placePiece() {
+        for (let i = 0; i < tetrisPiece.shape.length; i++) {
+          for (let j = 0; j < tetrisPiece.shape[i].length; j++) {
+            if (tetrisPiece.shape[i][j] === 1) {
+              boardArray[(tetrisPiece.position.row + i) * COLUMNS + tetrisPiece.position.col + j] = "cell";
+            }
+          }
+        }
+      }
+
+      function resetGame() {
+        for (let i = 0; i < boardArray.length; i++) {
+          boardArray[i] = EMPTY_CELL;
+        }
+      }
+
+      document.addEventListener("keydown", function(event) {
+        if (event.key === "ArrowDown") {
+          moveDown();
+        }
+        // Handle other key events as needed
+      });
+
+      // Initial render
+      render();
+
+      // Game loop
+      setInterval(moveDown, 1000); // Adjust the speed as needed
+    });
+  </script>
+</body>
+</html>
